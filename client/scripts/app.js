@@ -5,6 +5,8 @@ var app = {};
 
 app.server = 'https://api.parse.com/1/classes/messages';
 
+app.rooms = {};
+
 app.init = function() {
   this.fetch();
 };
@@ -26,16 +28,18 @@ app.send = function(message) {
   });
 };
 
-app.fetch = function() {
+app.fetch = function(roomname = 'All messages') {
+  var params = {order: '-createdAt'};
+
+  if (roomname !== 'All messages') {
+    params.where = {'roomname': roomname};
+  }
   $.ajax({
     url: 'https://api.parse.com/1/classes/messages',
     type: 'GET',
-    data: {order: '-createdAt'},
-    success: function (data) {
-      
+    data: params,
+    success: function (data) {     
       app.renderAll(data.results);
-      // console.log('this is the data: ' + data);
-      // $('#chats').text(data);
     },
     error: function (data) {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -55,9 +59,30 @@ app.renderAll = function(messageArray) {
 };
 
 app.renderMessage = function(message) {
-  var $newMessage = $('<div class="message">');
-  $newMessage.text(message.username + ': ' + message.text);
+  var $newMessage = $(`<div class="message ${message.roomname}">`);
+  $newMessage.text('(' + message.roomname + ')' + message.username + ': ' + message.text);
   $('#chats').append($newMessage);
+  this.updateRoomList(message.roomname);
+};
+
+app.renderNewMessages = function() {
+
+};
+
+app.updateRoomList = function(nameOfRoom) {
+  
+  if (this.rooms[nameOfRoom] === undefined) {
+    this.rooms[nameOfRoom] = true;
+    var $newRoom = $(`<option value=${nameOfRoom}>`);
+    if (nameOfRoom === undefined) {
+      nameOfRoom = 'undefined';
+    }
+    if (nameOfRoom === null) {
+      nameOfRoom = 'null';
+    }
+    $newRoom.text(nameOfRoom);
+    $('#room-selector').append($newRoom);
+  }
 };
 
 app.renderRoom = function(room) {
@@ -67,22 +92,41 @@ app.renderRoom = function(room) {
 };
 
 
+//add 'new room' option that creates new input field
+  //adds room to list when message is submitted
+//filters messages by room when room is selected
+
 
 $(document).ready(function() {
   app.init();
   var user = window.location.search.match(/username=(.*)/)[1];
-  var room = 'lobby';
   
   $('#submit').click(function(event) {
     var input = $('#send-message').val();
+    var roomName = $('#room-selector').val();
     $('#send-message').val('');
     var message = {
       username: user,
       text: input,
-      roomname: 'lobby'
+      roomname: roomName
     };
     app.send(message);
   });
+  // $('select[id="room-selector"]').change(function() {
+  //   if ($(this).val() === 'c7G7w4') {
+  //     //show input field
+  //   }
+  // });
+
+  // $('select[id="room-selector"]').change(function() {
+  //   if ($(this).val() !== 'c7G7w4') {
+  //     //if All message add all
+  //     else {
+  //       $('.message').not()
+  //     }
+  //     //else fetch all, loop through, if room = this.val then apprenderRoom 
+  //   }
+  // });    
 
   $('h1').hover(function(event) {
     $(this).css('cursor', 'pointer');
@@ -91,7 +135,6 @@ $(document).ready(function() {
     app.clearMessages();
     app.fetch();
   });
-
 });
 
 
