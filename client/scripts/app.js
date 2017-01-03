@@ -70,8 +70,23 @@ app.renderRoom = function(room) {
 
 
 app.init();
-// $(document).ready(function() {
+$(document).ready(function() {
+  var user = window.location.search.match(/username=(.*)/)[1];
+  var room = 'lobby';
   
-//   getNewMessages();
+  $('#submit').click(function(event) {
+    var input = $('#send-message').val();
+    $('#send-message').val('');
+    var message = {
+      username: user,
+      text: input,
+      roomname: 'lobby'
+    };
+    app.send(message);
+  });
 
-// });
+});
+
+
+
+
