@@ -28,11 +28,11 @@ app.send = function(message) {
   });
 };
 
-app.fetch = function(roomname = 'All messages') {
-  var params = {order: '-createdAt'};
+app.fetch = function(roomname) {
+  var params = {order: '-createdAt', limit: 200};
 
-  if (roomname !== 'All messages') {
-    params.where = {'roomname': roomname};
+  if (roomname !== undefined && roomname !== 'b5D7e3') {
+    params.where = {'roomname': `${roomname}`};
   }
   $.ajax({
     url: 'https://api.parse.com/1/classes/messages',
@@ -59,9 +59,19 @@ app.renderAll = function(messageArray) {
 };
 
 app.renderMessage = function(message) {
-  var $newMessage = $(`<div class="message ${message.roomname}">`);
-  $newMessage.text('(' + message.roomname + ')' + message.username + ': ' + message.text);
-  $('#chats').append($newMessage);
+  var $newContainter = $('<div class="message">');
+  var $newRoom = $('<small class="room">');
+  var $newUsername = $(`<a href="#" class="user ${message.username}">`);
+  var $newText = $('<span class="text">');
+
+  $newRoom.text("(" +message.roomname + ") ");
+  $newUsername.text(message.username);
+  $newText.text(': ' + message.text);
+
+
+  $newContainter.append($newRoom).append($newUsername).append($newText);
+  //$newContainter.text('(' + message.roomname + ')' + message.username + ': ' + message.text);
+  $('#chats').append($newContainter);
   this.updateRoomList(message.roomname);
 };
 
@@ -70,16 +80,18 @@ app.renderNewMessages = function() {
 };
 
 app.updateRoomList = function(nameOfRoom) {
-  
+  if (nameOfRoom === undefined) {
+    nameOfRoom = 'undefined';
+  }
+  if (nameOfRoom === null) {
+    nameOfRoom = 'null';
+  }
+
+  // var escapedName = nameOfRoom.replace(/"/g, '\\\"');
+
   if (this.rooms[nameOfRoom] === undefined) {
     this.rooms[nameOfRoom] = true;
-    var $newRoom = $(`<option value=${nameOfRoom}>`);
-    if (nameOfRoom === undefined) {
-      nameOfRoom = 'undefined';
-    }
-    if (nameOfRoom === null) {
-      nameOfRoom = 'null';
-    }
+    var $newRoom = $(`<option value="${nameOfRoom}">`);
     $newRoom.text(nameOfRoom);
     $('#room-selector').append($newRoom);
   }
@@ -92,10 +104,8 @@ app.renderRoom = function(room) {
 };
 
 
-//add 'new room' option that creates new input field
-  //adds room to list when message is submitted
-//filters messages by room when room is selected
-
+//escaping
+//friending - bold friend messages
 
 $(document).ready(function() {
   app.init();
@@ -104,6 +114,16 @@ $(document).ready(function() {
   $('#submit').click(function(event) {
     var input = $('#send-message').val();
     var roomName = $('#room-selector').val();
+
+    //if we're adding a new room, use that new name
+    if (roomName === 'c7G7w4') {
+      roomName = $('#new-room-creator').val();
+    }
+    //if we're in 'all messages, set the room name to the default (lobby)'
+    else if (roomName === 'b5D7e3') {
+      roomName = 'lobby';
+    }
+
     $('#send-message').val('');
     var message = {
       username: user,
@@ -111,22 +131,25 @@ $(document).ready(function() {
       roomname: roomName
     };
     app.send(message);
+    app.clearMessages();
+    app.fetch(roomName);
+    app.updateRoomList(roomName);
+    $('#room-selector').val(roomName);
+    $('#new-room-creator').hide().val('');
   });
-  // $('select[id="room-selector"]').change(function() {
-  //   if ($(this).val() === 'c7G7w4') {
-  //     //show input field
-  //   }
-  // });
 
-  // $('select[id="room-selector"]').change(function() {
-  //   if ($(this).val() !== 'c7G7w4') {
-  //     //if All message add all
-  //     else {
-  //       $('.message').not()
-  //     }
-  //     //else fetch all, loop through, if room = this.val then apprenderRoom 
-  //   }
-  // });    
+
+  $('select[id="room-selector"]').change(function() {
+    if ($(this).val() === 'c7G7w4') {
+      $('#new-room-creator').show();
+    }
+    else {
+      $('#new-room-creator').hide(); 
+    }
+    app.clearMessages();
+    app.fetch($(this).val());
+  });
+
 
   $('h1').hover(function(event) {
     $(this).css('cursor', 'pointer');
@@ -135,6 +158,12 @@ $(document).ready(function() {
     app.clearMessages();
     app.fetch();
   });
+
+  //add friend
+  // $('#chats').click('.user', function(event) {
+  //   var user = $(this).val();
+
+  // });
 });
 
 
