@@ -49,11 +49,9 @@ app.clearMessages = function() {
 };
 
 app.renderAll = function(messageArray) {
-
   for (var m of messageArray) {
     this.renderMessage(m);
   }
-
 };
 
 app.renderMessage = function(message) {
@@ -69,8 +67,9 @@ app.renderRoom = function(room) {
 };
 
 
-app.init();
+
 $(document).ready(function() {
+  app.init();
   var user = window.location.search.match(/username=(.*)/)[1];
   var room = 'lobby';
   
@@ -83,6 +82,14 @@ $(document).ready(function() {
       roomname: 'lobby'
     };
     app.send(message);
+  });
+
+  $('h1').hover(function(event) {
+    $(this).css('cursor', 'pointer');
+  });
+  $('h1').click(function(event) {
+    app.clearMessages();
+    app.fetch();
   });
 
 });
