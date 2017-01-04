@@ -61,7 +61,7 @@ app.renderAll = function(messageArray) {
 app.renderMessage = function(message) {
   var $newContainter = $('<div class="message">');
   var $newRoom = $('<small class="room">');
-  var $newUsername = $(`<a href="#" class="user ${message.username}">`);
+  var $newUsername = $(`<a href="#" class="user ${app.escapeHtml(message.username)}">`);
   var $newText = $('<span class="text">');
 
   $newRoom.text("(" +message.roomname + ") ");
@@ -75,9 +75,9 @@ app.renderMessage = function(message) {
   this.updateRoomList(message.roomname);
 };
 
-app.renderNewMessages = function() {
+// app.renderNewMessages = function() {
 
-};
+// };
 
 app.updateRoomList = function(nameOfRoom) {
   if (nameOfRoom === undefined) {
@@ -87,11 +87,11 @@ app.updateRoomList = function(nameOfRoom) {
     nameOfRoom = 'null';
   }
 
-  // var escapedName = nameOfRoom.replace(/"/g, '\\\"');
+  var escapedName = app.escapeHtml(nameOfRoom);
 
   if (this.rooms[nameOfRoom] === undefined) {
     this.rooms[nameOfRoom] = true;
-    var $newRoom = $(`<option value="${nameOfRoom}">`);
+    var $newRoom = $(`<option value="${escapedName}">`);
     $newRoom.text(nameOfRoom);
     $('#room-selector').append($newRoom);
   }
@@ -103,8 +103,20 @@ app.renderRoom = function(room) {
   $('#roomSelect').append($newRoom);
 };
 
+app.escapeHtml = function(string) {
+  var entityMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&#39;',
+    "/": '&#x2F;'
+  };
+  return String(string).replace(/[&<>"'\/]/g, function (s) {
+    return entityMap[s];
+  });
+};
 
-//escaping
 //friending - bold friend messages
 
 $(document).ready(function() {

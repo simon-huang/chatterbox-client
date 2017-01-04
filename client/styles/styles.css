@@ -13,6 +13,8 @@ body {
     padding: 50px 60px;
     border: solid #ddd;
     border-width: 0 1px 1px 1px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 #main h1 {
